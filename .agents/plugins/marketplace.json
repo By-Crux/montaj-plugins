@@ -1,0 +1,20 @@
+{
+  "name": "montaj",
+  "interface": {
+    "displayName": "Montaj"
+  },
+  "plugins": [
+    {
+      "name": "montaj",
+      "source": {
+        "source": "local",
+        "path": "./plugins/montaj"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

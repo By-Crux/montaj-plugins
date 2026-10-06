@@ -1,0 +1,8 @@
+#!/bin/sh
+# Runs the launcher the Montaj app writes on every startup.
+L="$HOME/Library/Application Support/Montaj/mcp-launch.sh"
+if [ -f "$L" ]; then
+  exec /bin/sh "$L" "$@"
+fi
+echo "Montaj isn't set up on this computer yet. Install it from montaj.ag and open it once." >&2
+exit 127

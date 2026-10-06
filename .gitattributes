@@ -1,0 +1,2 @@
+*.cmd text eol=crlf
+plugins/montaj/scripts/montaj-mcp text eol=lf

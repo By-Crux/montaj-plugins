@@ -1,0 +1,11 @@
+{
+  "name": "montaj",
+  "displayName": "Montaj",
+  "version": "1.0.0",
+  "description": "Edit videos in Montaj from your AI: projects, cuts, captions, renders.",
+  "author": { "name": "By Crux", "url": "https://montaj.ag" },
+  "icon": "./assets/icon.png",
+  "homepage": "https://montaj.ag",
+  "license": "UNLICENSED",
+  "keywords": ["video", "editing", "captions", "montaj"]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "montaj",
+  "description": "Edit videos in Montaj from your AI: projects, cuts, captions, renders.",
+  "owner": {
+    "name": "By Crux",
+    "url": "https://montaj.ag"
+  },
+  "plugins": [
+    {
+      "name": "montaj",
+      "source": "./plugins/montaj",
+      "description": "Edit videos in Montaj from your AI: projects, cuts, captions, renders."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "montaj": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/montaj-mcp",
+      "args": [],
+      "env": { "MONTAJ_MCP_CLIENT": "claude-code-plugin" }
+    }
+  }
+}

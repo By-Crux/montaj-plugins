@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "montaj",
+  "version": "1.0.0",
+  "description": "Edit videos in Montaj from your AI: projects, cuts, captions, renders.",
+  "author": { "name": "By Crux", "url": "https://montaj.ag" },
+  "homepage": "https://montaj.ag",
+  "license": "UNLICENSED",
+  "keywords": ["video", "editing", "captions", "montaj"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Montaj",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png",
+        "shortDescription": "Edit videos in Montaj from your AI.",
+        "developerName": "By Crux",
+        "websiteURL": "https://montaj.ag",
+        "defaultPrompt": [
+          "Cut my latest video into clips",
+          "Add captions to my project",
+          "Make a video from this link"
+        ]
+      }
+    }
+  }
+}
