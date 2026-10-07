@@ -44,9 +44,11 @@ To create or edit a workflow, load the `app/workflow-builder` skill with `get_sk
 
 Leave out a step's `out` parameter unless the step needs it: the result comes back in the tool's reply. When a later step needs an earlier result as a file (for example `rm_nonspeech` or `crop_spec` taking the trim spec `waveform_trim` returned), save it with `write_file` first, in the project's folder, and pass that path.
 
+For a step that writes a file (`generate_image`, `generate_music`, `generate_sfx`, `generate_voiceover`, `kling_generate`, `seedance_generate`), pass `project` to `run_step` and leave `out` out: Montaj saves the file in the project's assets folder and returns its path. For several options, call once per option.
+
 Send every parameter with the type `get_step` gives it. Some skills show `crop_spec`'s `keeps` or `virtual_to_original`'s `times` as a JSON array; `get_step` types them as strings, so send a JSON string: `"keeps": "[[8.5, 34.1]]"`, `"times": "[47.32]"`. Use `null` for an open end. `virtual_to_original` takes `times` and `inverse`, not `timestamp` or `verbose`.
 
-Montaj ships one speech model, large-v3-turbo, which handles every language. Leave `model` out. Pass an absolute path for any `out`.
+Montaj ships one speech model, large-v3-turbo, which handles every language. Leave `model` out. Pass an absolute path for any `out` you do set.
 
 A step that takes a while returns a `jobId` instead of a result, and so does a step Montaj can't start straight away (its status is `queued`). Call `get_step_result` with the newest `jobId` until the result arrives, and tell the user it's working. Never run a step again while its `jobId` is running or queued, even after a timeout: it would run twice. If it stays `queued`, ask the user to look for a Montaj prompt on their screen.
 
