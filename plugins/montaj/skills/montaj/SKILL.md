@@ -21,6 +21,7 @@ The Montaj app must be open on the user's computer. If a tool says Montaj isn't 
 | write a file `<path>` `<contents>` | `write_file` with an absolute path. For an overlay component, use `write_project_overlay` instead. |
 | read a file `<path>` | `read_file` with the absolute path. For an image, this shows you the picture. |
 | list a project's files | `list_files` with the project id, and `folder` for a folder inside it. It says which files are already sources; add another with `import_media` and the project. |
+| send a transcript to an upload link you were given | `upload_transcript` with the project and the https `url`. It sends the latest transcribe words JSON (or `file`, a transcript in the project); if the link expired, get a fresh one and call it again. |
 | log `<message>` | `post_progress` with the project id and `message`, one short line. It shows live in the Montaj window. Also say it to the user in this chat. |
 | render the project to a video file | `render_project` with the project id, then `get_render_status` (see Looking at frames) |
 | read the workflow | `get_workflow` with the workflow name |
@@ -60,6 +61,8 @@ When the user points at something on screen ("here", "where my playhead is", "th
 
 Check your work visually. After a cut, a crop or an overlay, look at a frame or two before you tell the user it is done: confirm the framing, the text and its position, and that nothing is cut off.
 
+When you finish, tell the user which of their asks are done and which are blocked, and why. Never present a blocked edit as done.
+
 Check your work with `sample_frame`, never with a render: sample each cut and two nearby moments inside a section (identical frames mean it isn't moving). When a full video file is needed, call `render_project` with the project id; the project's status must be `"final"`. It returns at once and the render keeps running in the Montaj app, so tell the user you are rendering, then call `get_render_status` every minute or two (it may take up to 45 seconds to answer) and give them the file path when it is done. Never call `render_project` again while a render is running. If you cannot wait, tell the user and stop: the app notifies them when it is done. Otherwise, when you're done, set the project to `draft` so the user can preview and render it.
 
 ## Starting a project the user created in the app
@@ -73,8 +76,8 @@ A project's `link` (on `list_projects` rows, `get_project` and `create_project`)
 
    If the project has `sourceDownload` with status `"downloading"`, its video is still downloading from YouTube and `tracks[0].items` is empty. Tell the user, then call `get_step_result` with its `jobId` until it finishes (each call waits up to 45 seconds). If `get_step_result` cannot find the job, call `get_project` again: that resumes the download with a new `jobId`. When it is done, call `get_project` again and start. If the status is `"failed"`, tell the user it could not be downloaded (`error` says why) and stop.
 
-   To bring footage in yourself, call `import_media` with a `url` (a direct media link, YouTube or a signed link) or a local `path`. It returns `{jobId, status}`: call `get_import_status` with the `jobId` until it is `done` (it gives a `path`), then pass that path as `clips` to `create_project`. With `project`, it adds the file to that project's sources instead. If it is `failed` (an expired or forbidden link, say), tell the user and ask for a fresh link.
-3. Call `get_workflow` with the project's `workflow`. This is how you "read the workflow" the `montaj` skill mentions.
+   To bring footage in yourself, call `import_media` with a `url` (a direct media link, YouTube or a signed link) or a local `path`. It returns `{jobId, status}`: call `get_import_status` with the `jobId` until it is `done` (it gives a `path`), then pass that path as `clips` to `create_project`. With `project`, it adds footage to that project's sources instead, and an image to its assets, as a copy inside the project. If it is `failed` (an expired or forbidden link, say), tell the user and ask for a fresh link.
+3. Call `get_workflow` with the project's `workflow`. This is how you "read the workflow" the `montaj` skill mentions. A `blank` project has no template: its workflow has no steps, so do what `editingPrompt` asks with its clips and its `assets` (the images and audio the user added), posting progress and saving as in step 4.
 4. Load the skills the workflow names with `get_skill`, and carry out its steps. Before each step, call `post_progress` with one short line saying what you are about to do, e.g. "Trimming silences from 3 clips", and tell the user in this chat too. The Montaj window shows the line live, so the user can see you are working. Save your progress with `save_project` as you go.
 5. When you are done, save `status: "draft"` and tell the user the edit is ready to review in the Montaj app. The user exports it from there.
 
@@ -89,6 +92,8 @@ Always call `get_project` right before you save and build `changes` from what yo
 In Montaj Studio each style profile has its own trends and Plan. Any profile on this computer can be the target. Call `list_profiles`, and pass that profile's `id` or name as `profile` to `create_project` and to the trends and post tools. Without `profile`, they use the profile active in the Montaj app. Never ask the user to switch profiles. With no profile yet, ask the user to create one in Montaj.
 
 In Pipeline, the Ideas tab holds the user's own notes, which no tool can reach. Plan holds posts (Script, Record, Edit, plus a date that puts a post on the calendar, and a Posted check mark), which the pipeline tools read and write. Trends holds the daily brief, where Develop makes a post.
+
+On Montaj Hub your AI can research the daily brief itself: `start_trend_research`, then `submit_trend_cards`, then `finish_trend_research`. Call `set_trend_runner` with `my_ai` only after you have set up your own daily task that does this.
 
 A `montaj://profile/<id>` resource is named by the profile's id; `list_profiles` has its name.
 
@@ -132,3 +137,5 @@ When the user seems confused or frustrated with Montaj, or something keeps faili
 ## Paths
 
 Every path is absolute. Keep files you write inside the project's folder, the folder that holds its clips, unless a skill says otherwise. Montaj refuses paths outside the user's Montaj workspace.
+
+When `read_file` refuses a file a project uses (an asset in Downloads, say), call `import_media` with its `path` and the project: it copies the file into the project and points the project at the copy. Then use it. Don't ask the user to move files. Bring any outside file into a project with `import_media` before using it; if `save_project` answers `copied`, use the new paths from then on.
