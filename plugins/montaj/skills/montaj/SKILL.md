@@ -31,6 +31,7 @@ The Montaj app must be open on the user's computer. If a tool says Montaj isn't 
 | the user's tasks (Pipeline, Today) | `list_tasks`, `add_task`, `complete_task`. Never deleted: that is the user's. Add one only for a follow-up they asked for or one clear next step, never many at once. |
 | schedule a finished post through the user's Buffer or Metricool (Montaj Hub) | `schedule_post` with the post's id and `action` (`schedule`, `reschedule`, `cancel`), `platforms` or `channels`, and `scheduled_date` and `scheduled_time` (the user's local time). Export the post first. Schedule only what the user asked for in this chat, then tell them which accounts and when: a scheduled post goes public by itself at its time. |
 | remove a Clips project's long video once its clips exist | `remove_clips_source` |
+| create a style profile | `create_profile` with `name`, optionally `platforms` and `link_in_bio`, after confirming the name with the user and checking `list_profiles`. It answers the profile and an `open_url` to give as a link. |
 | use a profile's Brand Kit (Montaj Studio) | `get_profile_kit`, optionally with `profile` from `list_profiles`. It returns the Brand Kit's folders (each with its icon) with their files, and its top-level files, each with its name and local path, and the team animations (name, group, jsxPath, description). Refer to folders and files by name. |
 
 Run every step with `run_step`, including `probe`, `snapshot`, `transcribe` and `sample_frame`. Don't look for a tool named after a step. `run_step` takes the parameter names from `get_step` and uses the service keys the user connected in the app.
@@ -89,7 +90,7 @@ Always call `get_project` right before you save and build `changes` from what yo
 
 ## Profiles
 
-In Montaj Studio each style profile has its own trends and Plan. Any profile on this computer can be the target. Call `list_profiles`, and pass that profile's `id` or name as `profile` to `create_project` and to the trends and post tools. Without `profile`, they use the profile active in the Montaj app. Never ask the user to switch profiles. With no profile yet, ask the user to create one in Montaj.
+In Montaj Studio each style profile has its own trends and Plan. Any profile on this computer can be the target. Call `list_profiles`, and pass that profile's `id` or name as `profile` to `create_project` and to the trends and post tools. Without `profile`, they use the profile active in the Montaj app. Never ask the user to switch profiles. With no profile yet, confirm a name with the user and call `create_profile` (`name`, optionally `platforms` and `link_in_bio`); its `open_url` opens the new profile, so give it as a link. Call `list_profiles` first so you do not create a duplicate.
 
 In Pipeline, the Ideas tab holds the user's own notes, which no tool can reach. Plan holds posts (Script, Record, Edit, plus a date that puts a post on the calendar, and a Posted check mark), which the pipeline tools read and write. Trends holds the daily brief, where Develop makes a post.
 
@@ -104,6 +105,10 @@ For an overlay, pass settings (durationSeconds, fps, googleFonts, defaults.props
 To use a library video in a project, call `import_media({path, project})` with its path, then place it with `save_project`: on the main track for an intro or outro, on an upper track for b-roll or a logo sting.
 
 To read or save a profile's style card, the one its Analysis tab shows, call `get_style_card` and `save_style_card`. The `app/style-profile` skill has the card's shape.
+
+A profile's `creators` are the creators the user looks to; measure them with the `app/style-profile` skill, then save each with `save_creator_diagnostic` and what the user adopts with `adopt_from_creator`.
+
+To change a 3D model, call `get_model`, then `save_model` with the same slug; to build one, call `save_model`. `list_models` lists the Library's models, a Studio profile's Brand Kit models (`kit: true`; read one with `get_model` and `kit`) and the presets. `export_model` saves a model as a .glb in the user's Downloads, which Blender opens with its moves; give the user the path it answers. `import_model` brings in a .glb (from Blender, any 3D app or an AI generator); a rigged model comes with its animations as moves, and you tell the user what its report says was left out. Name a project or a profile, never both.
 
 ## Review notes (Montaj Studio)
 
@@ -129,6 +134,16 @@ The user's own notes on a carousel are not review notes: they are in `project.no
 ## Paid generation
 
 `generate_image`, `generate_music`, `generate_sfx`, `generate_voiceover`, `kling_generate` and `seedance_generate` spend the user's own credits with the service they connected. Before running any of them, tell the user what you will make and how many calls it takes, and wait for a yes. One yes covers that batch; ask again before more. Regenerate only what changed.
+
+## Driving the Montaj window
+
+Use Montaj's tools first. Drive the window only for what no tool does.
+
+- Call `drive_snapshot`, then act by `ref` with `drive_click`, `drive_type`, `drive_press`, `drive_scroll` and `drive_navigate`. Take a new snapshot after anything that changes the screen.
+- Use `drive_screenshot` when the tree is not enough.
+- The timeline is a canvas: edit it with `save_project`. Bring files in with `import_media`; file pickers do not open while you drive.
+- The user sees a bar with Stop. "Your AI is controlling Montaj. Press Stop to do this yourself." means the action is the user's: tell them.
+- Call `drive_stop` when you are finished. The user can press Stop at any time.
 
 ## Feedback
 
