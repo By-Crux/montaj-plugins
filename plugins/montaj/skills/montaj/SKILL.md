@@ -24,7 +24,8 @@ The Montaj app must be open on the user's computer. If a tool says Montaj isn't 
 | send a transcript to an upload link you were given | `upload_transcript` with the project and the https `url`. It sends the latest transcribe words JSON (or `file`, a transcript in the project); if the link expired, get a fresh one and call it again. |
 | log `<message>` | `post_progress` with the project id and `message`, one short line. It shows live in the Montaj window. Also say it to the user in this chat. |
 | render the project to a video file | `render_project` with the project id, then `get_render_status` (see Looking at frames) |
-| read the workflow | `get_workflow` with the workflow name |
+| list the workflows | `list_workflows`: the valid workflow ids, each with a one-line description. Never guess a workflow name. |
+| read the workflow | `get_workflow` with the workflow name (an id from `list_workflows`) |
 | put a Hub template's files into a project | `install_workflow_assets` with the project id and the workflow name |
 | make a clip of a Clips project (`app/find_clips`) | `create_project` with `clip_of` (the Clips project's id), `clip` (the cut clip), a name and a prompt |
 | link a project to its post in Plan | `update_pipeline_item` with `project_id`, or `pipeline_item_id` on `create_project` for a clip |
@@ -46,7 +47,7 @@ To create or edit a workflow, load the `app/workflow-builder` skill with `get_sk
 
 Leave out a step's `out` parameter unless the step needs it: the result comes back in the tool's reply. When a later step needs an earlier result as a file (for example `rm_nonspeech` or `crop_spec` taking the trim spec `waveform_trim` returned), save it with `write_file` first, in the project's folder, and pass that path.
 
-For a step that writes a file (`generate_image`, `generate_music`, `generate_sfx`, `generate_voiceover`, `kling_generate`, `seedance_generate`), pass `project` to `run_step` and leave `out` out: Montaj saves the file in the project's assets folder and returns its path. For several options, call once per option.
+For a step that writes a file (`generate_image`, `generate_music`, `generate_sfx`, `generate_voiceover`, `kling_generate`, `seedance_generate`, `kinovi_generate`), pass `project` to `run_step` and leave `out` out: Montaj saves the file in the project's assets folder and returns its path. For several options, call once per option.
 
 Send every parameter with the type `get_step` gives it. Some skills show `crop_spec`'s `keeps` or `virtual_to_original`'s `times` as a JSON array; `get_step` types them as strings, so send a JSON string: `"keeps": "[[8.5, 34.1]]"`, `"times": "[47.32]"`. Use `null` for an open end. `virtual_to_original` takes `times` and `inverse`, not `timestamp` or `verbose`.
 
@@ -82,6 +83,8 @@ A project's `link` (on `list_projects` rows, `get_project` and `create_project`)
 4. Load the skills the workflow names with `get_skill`, and carry out its steps. Before each step, call `post_progress` with one short line saying what you are about to do, e.g. "Trimming silences from 3 clips", and tell the user in this chat too. The Montaj window shows the line live, so the user can see you are working. Save your progress with `save_project` as you go.
 5. When you are done, save `status: "draft"` and tell the user the edit is ready to review in the Montaj app. The user exports it from there.
 
+For a video meant for social platforms, save `settings.loudness: -14` (the integrated LUFS target; -30 to -5) with `save_project` so the export is normalized to it. Left out, the export keeps the mix as it is (often quieter). The export window also offers it as "Loudness".
+
 ## Saving
 
 `save_project` merges at the top level. Each field in `changes` replaces that whole field, and every field you leave out stays as it is. So to change one clip, send the whole `tracks` array with that clip changed. To clear a field, send it as null. Leave out `id`.
@@ -108,7 +111,7 @@ To read or save a profile's style card, the one its Analysis tab shows, call `ge
 
 A profile's `creators` are the creators the user looks to; measure them with the `app/style-profile` skill, then save each with `save_creator_diagnostic` and what the user adopts with `adopt_from_creator`.
 
-To change a 3D model, call `get_model`, then `save_model` with the same slug; to change one move send `moves_patch` (`set`, `remove`), and read just it with `get_model` `moves: [name]` or `moves: "names"`; to build one, call `save_model`. `list_models` lists the Library's models, a Studio profile's Brand Kit models (`kit: true`; read one with `get_model` and `kit`) and the presets. `export_model` saves a model as a .glb in the user's Downloads, which Blender opens with its moves; give the user the path it answers. `import_model` brings in a .glb (from Blender, any 3D app or an AI generator); a rigged model comes with its animations as moves, and you tell the user what its report says was left out. Name a project or a profile, never both.
+To change a 3D model, call `get_model`, then `save_model` with the same slug; to change one move send `moves_patch` (`set`, `remove`), and read just it with `get_model` `moves: [name]` or `moves: "names"`; to build one, call `save_model`. `list_models` lists the Library's models, a Studio profile's Brand Kit models (`kit: true`; read one with `get_model` and `kit`) and the presets. `export_model` saves a model as a .glb in the user's Downloads, which Blender opens with its moves; give the user the path it answers. `import_model` brings in a .glb (from Blender, any 3D app or an AI generator); a rigged model comes with its animations as moves, and you tell the user what its report says was left out. An imported model keeps its textures: `get_model` shows them as `textureInfo` (id to size), a material's `maps` names them by id, and you can change a map's factors, `uv` and `alpha` or remove it, but never make a texture. Name a project or a profile, never both.
 
 ## Review notes (Montaj Studio)
 
@@ -133,7 +136,7 @@ The user's own notes on a carousel are not review notes: they are in `project.no
 
 ## Paid generation
 
-`generate_image`, `generate_music`, `generate_sfx`, `generate_voiceover`, `kling_generate` and `seedance_generate` spend the user's own credits with the service they connected. Before running any of them, tell the user what you will make and how many calls it takes, and wait for a yes. One yes covers that batch; ask again before more. Regenerate only what changed.
+`generate_image`, `generate_music`, `generate_sfx`, `generate_voiceover`, `kling_generate`, `seedance_generate` and `kinovi_generate` spend the user's own credits with the service they connected. Before running any of them, tell the user what you will make and how many calls it takes, and wait for a yes. One yes covers that batch; ask again before more. Regenerate only what changed.
 
 ## Driving the Montaj window
 
